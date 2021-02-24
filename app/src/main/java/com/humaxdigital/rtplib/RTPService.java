@@ -4,12 +4,15 @@ import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.database.ContentObserver;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -18,6 +21,13 @@ import androidx.core.app.NotificationCompat;
 
 
 public class RTPService extends Service {
+
+    public static final String CLUSTER_REQUEST_RTP_STREAM = "com.humaxdigital.settings.CLUSTER_REQUEST_RTP_STREAM";
+    public static final int CLUSTER_RTP_STREAM_STOP = 0;
+    public static final int CLUSTER_RTP_STREAM_START = 1;
+    public static final int CLUSTER_RTP_STREAM_INIT = CLUSTER_RTP_STREAM_STOP;
+
+
     NotificationManager notificationManager;
     NotificationCompat.Builder mBuilder;
     Callbacks activity;
@@ -32,9 +42,11 @@ public class RTPService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("TruongVM","RTPService onStartCommand");
 
         IPAddress = intent.getStringExtra("IPADDRESS");
         //Do what you need in onStartCommand when service has been started
+        registerStartStopStreamListener();
         return START_NOT_STICKY;
     }
 
@@ -94,4 +106,38 @@ public class RTPService extends Service {
     public interface Callbacks{
         public void updateClient(long data);
     }
+
+
+    private void startStream() {
+        startCounter(IPAddress);
+    }
+
+    private void stopStream() {
+        stopCounter();
+    }
+
+
+    private void registerStartStopStreamListener() {
+        getApplicationContext().getContentResolver().registerContentObserver(Settings.Global.getUriFor(CLUSTER_REQUEST_RTP_STREAM),
+                false,
+                mStartStopStreamServiceObserver);
+    }
+
+    private final ContentObserver mStartStopStreamServiceObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
+        @Override
+        public void onChange(boolean selfChange) {
+            int status = Settings.Global.getInt(getApplicationContext().getContentResolver(), CLUSTER_REQUEST_RTP_STREAM, CLUSTER_RTP_STREAM_STOP);
+            // status is 0 : stop stream
+            // status is 1 : start stream
+            Log.d("TruongVM", "status stream= " + status);
+            if (status == CLUSTER_RTP_STREAM_STOP) {
+                Log.d("TruongVM", "stop stream");
+                stopStream();
+            } else if (status == CLUSTER_RTP_STREAM_START) {
+                Log.d("TruongVM", "start stream");
+                startStream();
+            }
+
+        }
+    };
 }

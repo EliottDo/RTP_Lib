@@ -1,16 +1,21 @@
 package com.humaxdigital.rtplib;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -27,6 +32,10 @@ import java.net.UnknownHostException;
 
 public class MainActivity extends AppCompatActivity implements RTPService.Callbacks{
 
+    public static final String CLUSTER_REQUEST_RTP_STREAM = "com.humaxdigital.settings.CLUSTER_REQUEST_RTP_STREAM";
+    public static final int CLUSTER_RTP_STREAM_STOP = 0;
+    public static final int CLUSTER_RTP_STREAM_START = 1;
+    public static final int CLUSTER_RTP_STREAM_INIT = CLUSTER_RTP_STREAM_STOP;
     Socket mSocket;
     byte[] data = new byte[13000];
     int count = 0;
@@ -52,9 +61,10 @@ public class MainActivity extends AppCompatActivity implements RTPService.Callba
     public static final int DEFAULT_BUFFER_SIZE = 181920;
 
     // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
-    }
+//    static {
+//        System.loadLibrary("native-lib");
+//    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,20 +75,20 @@ public class MainActivity extends AppCompatActivity implements RTPService.Callba
         ToggleButton btnStart = findViewById(R.id.sample_text);
         btnStart.setText("Start");
 
-        edtIP = findViewById(R.id.edt_IP);
-        serviceIntent = new Intent(MainActivity.this, RTPService.class);
-
-        try {
-            IPAddress = edtIP.getText().toString();
-            Log.d("Franky", "host = " + IPAddress);
-            mDestination = InetAddress.getByName(IPAddress);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-
-        serviceIntent.putExtra("IPADDRESS", IPAddress);
-        startService(serviceIntent); //Starting the service
-        bindService(serviceIntent, mConnection,            Context.BIND_AUTO_CREATE); //Binding to the service!
+//        edtIP = findViewById(R.id.edt_IP);
+//        serviceIntent = new Intent(MainActivity.this, RTPService.class);
+//
+//        try {
+//            IPAddress = edtIP.getText().toString();
+//            Log.d("Franky", "host = " + IPAddress);
+//            mDestination = InetAddress.getByName(IPAddress);
+//        } catch (UnknownHostException e) {
+//            e.printStackTrace();
+//        }
+//
+//        serviceIntent.putExtra("IPADDRESS", IPAddress);
+//        startService(serviceIntent); //Starting the service
+//        bindService(serviceIntent, mConnection,            Context.BIND_AUTO_CREATE); //Binding to the service!
 
         //mRetrieveFeedTask.execute();
 
@@ -88,30 +98,33 @@ public class MainActivity extends AppCompatActivity implements RTPService.Callba
                 if (btnStart.isChecked()) {
                     stopSocket = 1;
                     btnStart.setText("Stop");
+                    Settings.Global.putInt(getContentResolver(),"com.humaxdigital.settings.CLUSTER_REQUEST_RTP_STREAM", 1);
 
-                    IPAddress = edtIP.getText().toString();
-                    rtpService.startCounter(IPAddress);
+                    //IPAddress = edtIP.getText().toString();
+                    //rtpService.startCounter(IPAddress);
 
                     //mRetrieveFeedTask.execute();
 
                     Log.d("Franky", "1");
                 } else {
                     btnStart.setText("Start");
-                    stop();
+//                    stop();
+                    Settings.Global.putInt(getContentResolver(), "com.humaxdigital.settings.CLUSTER_REQUEST_RTP_STREAM", 0);
                     //mRetrieveFeedTask.cancel(true);
-                    rtpService.stopCounter();
+                    //rtpService.stopCounter();
                 }
 
             }
         });
+        finish();
     }
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(mConnection);
-        stopService(serviceIntent);
+//        unbindService(mConnection);
+//        stopService(serviceIntent);
     }
 
 
