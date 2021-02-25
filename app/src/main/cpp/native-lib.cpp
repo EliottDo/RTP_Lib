@@ -53,6 +53,7 @@ static unsigned int s_unTimestamp = 0;
 static unsigned int s_unSsrc = 0;
 static struct sockaddr_in s_stServAddrRtp;
 static int isRunning = true;
+static int isSending = true;
 //https://github.com/txgcwm/Linux-C-Examples/blob/master/rtsp/src/rtp_h264.c
 typedef struct _RTP_header {
     /* byte 0 */
@@ -139,9 +140,12 @@ static int build_rtp_nalu(unsigned char *inbuffer, int frame_size, int cur_conn_
         memcpy(s_pNalu_buffer, &rtp_header, sizeof(rtp_header));
         memcpy(s_pNalu_buffer + RTP_HEADER_SIZE, p_nalu_data, data_left);
         //ret = write(cur_conn_num,&nalu_buffer[0], data_left + RTP_HEADER_SIZE);
-        print("send1 to %d \n", ret);
-        ret = sendto(cur_conn_num, s_pNalu_buffer, data_left + RTP_HEADER_SIZE, 0,
-                     (struct sockaddr *) &s_stServAddrRtp, sizeof(s_stServAddrRtp));;
+        if (isSending) {
+            print("send1 to %d \n", ret);
+            ret = sendto(cur_conn_num, s_pNalu_buffer, data_left + RTP_HEADER_SIZE, 0,
+                         (struct sockaddr *) &s_stServAddrRtp, sizeof(s_stServAddrRtp));
+        }
+
         if (ret != data_left + RTP_HEADER_SIZE) {
             print("warning...[%d/%d]\n", ret, data_left + RTP_HEADER_SIZE);
         }
@@ -168,9 +172,12 @@ static int build_rtp_nalu(unsigned char *inbuffer, int frame_size, int cur_conn_
         s_pNalu_buffer[12] = fu_indic;
         s_pNalu_buffer[13] = fu_header;
 //    ret = write(cur_conn_num,&nalu_buffer[0], rtp_size);
-        print("send2 to %d \n", ret);
-        ret = sendto(cur_conn_num, s_pNalu_buffer, rtp_size, 0,
-                     (struct sockaddr *) &s_stServAddrRtp, sizeof(s_stServAddrRtp));;
+        if (isSending) {
+            print("send2 to %d \n", ret);
+            ret = sendto(cur_conn_num, s_pNalu_buffer, rtp_size, 0,
+                         (struct sockaddr *) &s_stServAddrRtp, sizeof(s_stServAddrRtp));
+        }
+
         if (fu_end) {
             usleep(DE_TIME * count);
         } else {
@@ -229,6 +236,7 @@ static unsigned int GetTickCount(void) {
 }
 int start(const char *ipaddress) {
     isRunning = true;
+    isSending = true;
     unsigned char message[1024 * 10] = {0x00,};
     unsigned int spend_time;
     int frame_size = 0, bytes_left;
@@ -328,6 +336,10 @@ int start(const char *ipaddress) {
 void stop() {
     isRunning = false;
 }
+
+void stopSending() {
+    isSending = false;
+}
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_humaxdigital_rtplib_RTPService_start(
         JNIEnv *env,
@@ -342,10 +354,28 @@ Java_com_humaxdigital_rtplib_RTPService_start(
     return nullptr;
 }
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_humaxdigital_rtplib_RTPService_stop(
+Java_com_humaxdigital_rtplib_RTPService_stopRunning(
         JNIEnv *env,
         jobject /* this */) {
-    print("stop..\n");
+    print("stop running..\n");
     stop();
+    return nullptr;
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_humaxdigital_rtplib_RTPService_startSending(
+        JNIEnv *env,
+        jobject /* this */) {
+    print("start sending..\n");
+    isSending = true;
+    return nullptr;
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_humaxdigital_rtplib_RTPService_stopSending(
+        JNIEnv *env,
+        jobject /* this */) {
+    print("stop sending..\n");
+    stopSending();
     return nullptr;
 }

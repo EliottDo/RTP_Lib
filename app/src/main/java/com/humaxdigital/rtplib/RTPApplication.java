@@ -46,6 +46,7 @@ public class RTPApplication extends Application {
     EditText edtIP;
     boolean mStreaming = false;
     public static final int DEFAULT_BUFFER_SIZE = 181920;
+    String TAG = "RTPApplication";
 
     static {
         System.loadLibrary("native-lib");
@@ -56,10 +57,10 @@ public class RTPApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Log.d("TruongVM", "RTPApplication started");
+        Log.d(TAG, "RTPApplication started");
         serviceIntent = new Intent(getApplicationContext(), RTPService.class);
         IPAddress = "192.168.98.107";
-        Log.d("Franky", "host = " + IPAddress);
+        Log.d(TAG, "host = " + IPAddress);
         try {
             mDestination = InetAddress.getByName(IPAddress);
         } catch (UnknownHostException e) {
@@ -122,8 +123,7 @@ public class RTPApplication extends Application {
             sps[13] = -44;
 
             try {
-                IPAddress = edtIP.getText().toString();
-                Log.d("Franky", "host = " + IPAddress);
+                Log.d(TAG, "host = " + IPAddress);
                 mDestination = InetAddress.getByName(IPAddress);
             } catch (UnknownHostException e) {
                 e.printStackTrace();

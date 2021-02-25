@@ -42,9 +42,10 @@ public class RTPService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("TruongVM","RTPService onStartCommand");
+
 
         IPAddress = intent.getStringExtra("IPADDRESS");
+        Log.d(TAG,"RTPService onStartCommand IPAddress= " +IPAddress);
         //Do what you need in onStartCommand when service has been started
         registerStartStopStreamListener();
         return START_NOT_STICKY;
@@ -80,15 +81,25 @@ public class RTPService extends Service {
         thread.start();
     }
 
+    public void startSend() {
+        startSending();
+    }
+
     public void stopCounter(){
         stopSocket = 0;
-        stop();
+        stopSending();
         if (thread != null) {
             thread.interrupt();
         }
         //stopSocket();
         //mRetrieveFeedTask.cancel(true);
         //Toast.makeText(getApplicationContext(), "Stop RTP Socket Service", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopRunning();
     }
 
     class RetrieveFeedTask extends AsyncTask<String, Void, Void> {
@@ -100,7 +111,9 @@ public class RTPService extends Service {
     }
 
     public native String start(String ip);
-    public native String stop();
+    public native String stopRunning();
+    public native String stopSending();
+    public native String startSending();
 
     //callbacks interface for communication with service clients!
     public interface Callbacks{
@@ -129,12 +142,12 @@ public class RTPService extends Service {
             int status = Settings.Global.getInt(getApplicationContext().getContentResolver(), CLUSTER_REQUEST_RTP_STREAM, CLUSTER_RTP_STREAM_STOP);
             // status is 0 : stop stream
             // status is 1 : start stream
-            Log.d("TruongVM", "status stream= " + status);
+            Log.d(TAG, "status stream= " + status);
             if (status == CLUSTER_RTP_STREAM_STOP) {
-                Log.d("TruongVM", "stop stream");
+                Log.d(TAG, "stop stream");
                 stopStream();
             } else if (status == CLUSTER_RTP_STREAM_START) {
-                Log.d("TruongVM", "start stream");
+                Log.d(TAG, "start stream");
                 startStream();
             }
 
