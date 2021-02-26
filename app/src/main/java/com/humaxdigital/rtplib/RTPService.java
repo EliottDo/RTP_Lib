@@ -27,6 +27,8 @@ public class RTPService extends Service {
     public static final int CLUSTER_RTP_STREAM_START = 1;
     public static final int CLUSTER_RTP_STREAM_INIT = CLUSTER_RTP_STREAM_STOP;
 
+    public static final String CLUSTER_REQUEST_CHANGE_IP_ADDRESS = "com.humaxdigital.settings.CLUSTER_REQUEST_CHANGE_IP_ADDRESS";
+
 
     NotificationManager notificationManager;
     NotificationCompat.Builder mBuilder;
@@ -39,15 +41,17 @@ public class RTPService extends Service {
     int stopSocket = 1;
     String TAG = "RTPService";
     private Thread thread;
+    private boolean isFirstTimesStream = true;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 
         IPAddress = intent.getStringExtra("IPADDRESS");
-        Log.d(TAG,"RTPService onStartCommand IPAddress= " +IPAddress);
+        Log.d(TAG, "RTPService onStartCommand IPAddress= " + IPAddress);
         //Do what you need in onStartCommand when service has been started
         registerStartStopStreamListener();
+        registerChangeIPListener();
         return START_NOT_STICKY;
     }
 
@@ -55,23 +59,27 @@ public class RTPService extends Service {
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
+
     //returns the instance of the service
     public class LocalBinder extends Binder {
-        public RTPService getServiceInstance(){
+        public RTPService getServiceInstance() {
             return RTPService.this;
         }
     }
 
     //Here Activity register to the service as Callbacks client
-    public void registerClient(Activity activity){
-        this.activity = (Callbacks)activity;
+    public void registerClient(Activity activity) {
+        this.activity = (Callbacks) activity;
     }
 
-    public void startCounter(String ip){
+    public void startCounter(String ip) {
         IPAddress = ip;
         Toast.makeText(getApplicationContext(), "Start RTP Socket Service with Host IP = " + IPAddress, Toast.LENGTH_LONG).show();
         //mRetrieveFeedTask.execute();
         stopSocket = 1;
+        if (thread != null) {
+            thread.interrupt();
+        }
         thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -81,13 +89,10 @@ public class RTPService extends Service {
         thread.start();
     }
 
-    public void startSend() {
-        startSending();
-    }
 
-    public void stopCounter(){
+    public void stopCounter() {
         stopSocket = 0;
-        stopSending();
+        stopRunning();
         if (thread != null) {
             thread.interrupt();
         }
@@ -99,7 +104,8 @@ public class RTPService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopRunning();
+        stopCounter();
+        stopSending();
     }
 
     class RetrieveFeedTask extends AsyncTask<String, Void, Void> {
@@ -111,26 +117,21 @@ public class RTPService extends Service {
     }
 
     public native String start(String ip);
+
     public native String stopRunning();
+
     public native String stopSending();
+
     public native String startSending();
 
     //callbacks interface for communication with service clients!
-    public interface Callbacks{
+    public interface Callbacks {
         public void updateClient(long data);
     }
 
 
-    private void startStream() {
-        startCounter(IPAddress);
-    }
-
-    private void stopStream() {
-        stopCounter();
-    }
-
-
     private void registerStartStopStreamListener() {
+        Log.d(TAG, "registerStartStopStreamListener");
         getApplicationContext().getContentResolver().registerContentObserver(Settings.Global.getUriFor(CLUSTER_REQUEST_RTP_STREAM),
                 false,
                 mStartStopStreamServiceObserver);
@@ -145,11 +146,34 @@ public class RTPService extends Service {
             Log.d(TAG, "status stream= " + status);
             if (status == CLUSTER_RTP_STREAM_STOP) {
                 Log.d(TAG, "stop stream");
-                stopStream();
+                stopSending();
             } else if (status == CLUSTER_RTP_STREAM_START) {
-                Log.d(TAG, "start stream");
-                startStream();
+                Log.d(TAG, "start stream isFirstTimesStream= "+isFirstTimesStream);
+                if (isFirstTimesStream) {
+                    isFirstTimesStream = false;
+                    startCounter(IPAddress);
+                } else {
+                    startSending();
+                }
+
             }
+
+        }
+    };
+
+    private void registerChangeIPListener() {
+        Log.d(TAG, "registerChangeIPListener");
+        getApplicationContext().getContentResolver().registerContentObserver(Settings.Global.getUriFor(CLUSTER_REQUEST_CHANGE_IP_ADDRESS),
+                false,
+                mChangeIPObserver);
+    }
+
+    private final ContentObserver mChangeIPObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
+        @Override
+        public void onChange(boolean selfChange) {
+            IPAddress = Settings.Global.getString(getApplicationContext().getContentResolver(), CLUSTER_REQUEST_CHANGE_IP_ADDRESS);
+            Log.d(TAG, "mChangeIPObserver IPAddress= " + IPAddress);
+            startCounter(IPAddress);
 
         }
     };
