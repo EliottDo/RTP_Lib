@@ -1,13 +1,17 @@
 package com.humaxdigital.rtplib;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.car.settings.CarSettings;
+import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -29,6 +33,7 @@ public class RTPService extends Service {
 
     NotificationManager notificationManager;
     NotificationCompat.Builder mBuilder;
+    private String channelId = "rtpDisplayStreamChannel";
     Callbacks activity;
     private long startTime = 0;
     private long millis = 0;
@@ -42,7 +47,7 @@ public class RTPService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
+        Toast.makeText(getApplicationContext(),"RTPService", Toast.LENGTH_LONG).show();
         isFirstTimesStream= true;
         IPAddress = intent.getStringExtra("IPADDRESS");
         Log.d(TAG, "RTPService onStartCommand IPAddress= " + IPAddress);
@@ -50,6 +55,17 @@ public class RTPService extends Service {
         registerStartStopStreamListener();
         registerChangeIPListener();
         return START_STICKY;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(channel);
+        }
+        keepAliveTrick();
     }
 
     @Override
@@ -174,4 +190,17 @@ public class RTPService extends Service {
 
         }
     };
+
+    private void keepAliveTrick() {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+            Notification notification = new NotificationCompat.Builder(this, channelId)
+                    .setOngoing(true)
+                    .setContentTitle("")
+                    .setContentText("").build();
+            startForeground(1, notification);
+        } else {
+            startForeground(1, new Notification());
+        }
+    }
+
 }

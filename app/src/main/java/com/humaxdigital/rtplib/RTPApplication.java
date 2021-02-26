@@ -67,7 +67,7 @@ public class RTPApplication extends Application {
             e.printStackTrace();
         }
         serviceIntent.putExtra("IPADDRESS", IPAddress);
-        startService(serviceIntent);
+        startForegroundService(serviceIntent);
 
     }
 
