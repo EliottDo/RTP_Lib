@@ -3,6 +3,7 @@ package com.humaxdigital.rtplib;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.car.settings.CarSettings;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.os.AsyncTask;
@@ -22,10 +23,6 @@ import androidx.core.app.NotificationCompat;
 
 public class RTPService extends Service {
 
-    public static final String CLUSTER_REQUEST_RTP_STREAM = "com.humaxdigital.settings.CLUSTER_REQUEST_RTP_STREAM";
-    public static final int CLUSTER_RTP_STREAM_STOP = 0;
-    public static final int CLUSTER_RTP_STREAM_START = 1;
-    public static final int CLUSTER_RTP_STREAM_INIT = CLUSTER_RTP_STREAM_STOP;
 
     public static final String CLUSTER_REQUEST_CHANGE_IP_ADDRESS = "com.humaxdigital.settings.CLUSTER_REQUEST_CHANGE_IP_ADDRESS";
 
@@ -46,13 +43,13 @@ public class RTPService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-
+        isFirstTimesStream= true;
         IPAddress = intent.getStringExtra("IPADDRESS");
         Log.d(TAG, "RTPService onStartCommand IPAddress= " + IPAddress);
         //Do what you need in onStartCommand when service has been started
         registerStartStopStreamListener();
         registerChangeIPListener();
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override
@@ -132,7 +129,7 @@ public class RTPService extends Service {
 
     private void registerStartStopStreamListener() {
         Log.d(TAG, "registerStartStopStreamListener");
-        getApplicationContext().getContentResolver().registerContentObserver(Settings.Global.getUriFor(CLUSTER_REQUEST_RTP_STREAM),
+        getApplicationContext().getContentResolver().registerContentObserver(Settings.Global.getUriFor(CarSettings.Global.CLUSTER_REQUEST_RTP_STREAM),
                 false,
                 mStartStopStreamServiceObserver);
     }
@@ -140,14 +137,14 @@ public class RTPService extends Service {
     private final ContentObserver mStartStopStreamServiceObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
         @Override
         public void onChange(boolean selfChange) {
-            int status = Settings.Global.getInt(getApplicationContext().getContentResolver(), CLUSTER_REQUEST_RTP_STREAM, CLUSTER_RTP_STREAM_STOP);
+            int status = Settings.Global.getInt(getApplicationContext().getContentResolver(), CarSettings.Global.CLUSTER_REQUEST_RTP_STREAM, CarSettings.Global.CLUSTER_RTP_STREAM_STOP);
             // status is 0 : stop stream
             // status is 1 : start stream
             Log.d(TAG, "status stream= " + status);
-            if (status == CLUSTER_RTP_STREAM_STOP) {
+            if (status == CarSettings.Global.CLUSTER_RTP_STREAM_STOP) {
                 Log.d(TAG, "stop stream");
                 stopSending();
-            } else if (status == CLUSTER_RTP_STREAM_START) {
+            } else if (status == CarSettings.Global.CLUSTER_RTP_STREAM_START) {
                 Log.d(TAG, "start stream isFirstTimesStream= "+isFirstTimesStream);
                 if (isFirstTimesStream) {
                     isFirstTimesStream = false;
