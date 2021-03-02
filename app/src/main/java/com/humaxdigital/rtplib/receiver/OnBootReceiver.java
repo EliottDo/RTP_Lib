@@ -16,7 +16,7 @@ public class OnBootReceiver extends BroadcastReceiver {
         Toast.makeText(context,"OnBootReceiver", Toast.LENGTH_LONG).show();
         Log.d(TAG, "OnBootReceiver");
         Intent serviceIntent = new Intent(context, RTPService.class);
-        String IPAddress = "192.168.98.118";
+        String IPAddress = "192.168.100.206";
         Log.d(TAG, "host = " + IPAddress);
         serviceIntent.putExtra("IPADDRESS", IPAddress);
         context.startForegroundService(serviceIntent);
