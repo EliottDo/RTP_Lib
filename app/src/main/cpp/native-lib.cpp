@@ -25,7 +25,7 @@
 //char err[] = "wrong";
 //LOGE("Something went %s", err);
 #define SRC_IP_ADDR				"127.0.0.1"
-#define DEST_IP_ADDR            "192.168.98.118"
+#define DEST_IP_ADDR            "191.168.100.206"
 #else
 #define SRC_IP_ADDR          "10.250.12.60"
 #define DEST_IP_ADDR         "10.250.12.205"
