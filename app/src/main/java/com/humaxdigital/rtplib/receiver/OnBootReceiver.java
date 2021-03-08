@@ -13,7 +13,7 @@ public class OnBootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Toast.makeText(context,"OnBootReceiver", Toast.LENGTH_LONG).show();
+//        Toast.makeText(context,"OnBootReceiver", Toast.LENGTH_LONG).show();
         Log.d(TAG, "OnBootReceiver");
         Intent serviceIntent = new Intent(context, RTPService.class);
         String IPAddress = "192.168.100.206";

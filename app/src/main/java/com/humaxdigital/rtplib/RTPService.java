@@ -47,7 +47,7 @@ public class RTPService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(getApplicationContext(),"RTPService", Toast.LENGTH_LONG).show();
+//        Toast.makeText(getApplicationContext(),"RTPService", Toast.LENGTH_LONG).show();
         isFirstTimesStream= true;
         IPAddress = intent.getStringExtra("IPADDRESS");
         Log.d(TAG, "RTPService onStartCommand IPAddress= " + IPAddress);
@@ -87,7 +87,7 @@ public class RTPService extends Service {
 
     public void startCounter(String ip) {
         IPAddress = ip;
-        Toast.makeText(getApplicationContext(), "Start RTP Socket Service with Host IP = " + IPAddress, Toast.LENGTH_LONG).show();
+//        Toast.makeText(getApplicationContext(), "Start RTP Socket Service with Host IP = " + IPAddress, Toast.LENGTH_LONG).show();
         //mRetrieveFeedTask.execute();
         stopSocket = 1;
         if (thread != null) {
