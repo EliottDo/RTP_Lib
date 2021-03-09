@@ -71,9 +71,9 @@ public class MainActivity extends AppCompatActivity implements RTPService.Callba
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        PackageManager p = getPackageManager();
-        ComponentName componentName = new ComponentName(this, MainActivity.class); // activity which is first time open in manifiest file which is declare as <category android:name="android.intent.category.LAUNCHER" />
-        p.setComponentEnabledSetting(componentName,PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+//        PackageManager p = getPackageManager();
+//        ComponentName componentName = new ComponentName(this, MainActivity.class); // activity which is first time open in manifiest file which is declare as <category android:name="android.intent.category.LAUNCHER" />
+//        p.setComponentEnabledSetting(componentName,PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
 
         // Example of a call to a native method
         ToggleButton btnStart = findViewById(R.id.sample_text);
