@@ -25,7 +25,7 @@
 //char err[] = "wrong";
 //LOGE("Something went %s", err);
 #define SRC_IP_ADDR				"127.0.0.1"
-#define DEST_IP_ADDR            "192.168.100.206"
+#define DEST_IP_ADDR            "192.168.40.2"
 #else
 #define SRC_IP_ADDR          "10.250.12.60"
 #define DEST_IP_ADDR         "10.250.12.205"
@@ -140,12 +140,13 @@ static int build_rtp_nalu(unsigned char *inbuffer, int frame_size, int cur_conn_
         memcpy(s_pNalu_buffer, &rtp_header, sizeof(rtp_header));
         memcpy(s_pNalu_buffer + RTP_HEADER_SIZE, p_nalu_data, data_left);
         //ret = write(cur_conn_num,&nalu_buffer[0], data_left + RTP_HEADER_SIZE);
-        if (isSending) {
-            print("send1 to %d \n", ret);
-            ret = sendto(cur_conn_num, s_pNalu_buffer, data_left + RTP_HEADER_SIZE, 0,
-                         (struct sockaddr *) &s_stServAddrRtp, sizeof(s_stServAddrRtp));
-        }
-
+        // rollback sending logic start
+//        if (isSending) {
+        print("send1 to %d \n", ret);
+        ret = sendto(cur_conn_num, s_pNalu_buffer, data_left + RTP_HEADER_SIZE, 0,
+                     (struct sockaddr *) &s_stServAddrRtp, sizeof(s_stServAddrRtp));
+//        }
+        // rollback sending logic end
         if (ret != data_left + RTP_HEADER_SIZE) {
             print("warning...[%d/%d]\n", ret, data_left + RTP_HEADER_SIZE);
         }
@@ -171,12 +172,14 @@ static int build_rtp_nalu(unsigned char *inbuffer, int frame_size, int cur_conn_
         memcpy(s_pNalu_buffer + 14, p_nalu_data, proc_size);
         s_pNalu_buffer[12] = fu_indic;
         s_pNalu_buffer[13] = fu_header;
+        // rollback sending logic start
 //    ret = write(cur_conn_num,&nalu_buffer[0], rtp_size);
-        if (isSending) {
-            print("send2 to %d \n", ret);
-            ret = sendto(cur_conn_num, s_pNalu_buffer, rtp_size, 0,
-                         (struct sockaddr *) &s_stServAddrRtp, sizeof(s_stServAddrRtp));
-        }
+//        if (isSending) {
+        print("send2 to %d \n", ret);
+        ret = sendto(cur_conn_num, s_pNalu_buffer, rtp_size, 0,
+                     (struct sockaddr *) &s_stServAddrRtp, sizeof(s_stServAddrRtp));
+//        }
+        // rollback sending logic end
 
         if (fu_end) {
             usleep(DE_TIME * count);
@@ -236,7 +239,9 @@ static unsigned int GetTickCount(void) {
 }
 int start(const char *ipaddress) {
     isRunning = true;
-    isSending = true;
+    // rollback sending logic start
+//    isSending = true;
+    // rollback sending logic end
     unsigned char message[1024 * 10] = {0x00,};
     unsigned int spend_time;
     int frame_size = 0, bytes_left;

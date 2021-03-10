@@ -48,8 +48,13 @@ public class RTPService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 //        Toast.makeText(getApplicationContext(),"RTPService", Toast.LENGTH_LONG).show();
-        isFirstTimesStream= true;
-        IPAddress = intent.getStringExtra("IPADDRESS");
+        isFirstTimesStream = true;
+        if (intent == null || (intent.getStringExtra("IPADDRESS") == null)) {
+            IPAddress = "192.168.40.2 ";
+        } else {
+            IPAddress = intent.getStringExtra("IPADDRESS");
+        }
+
         Log.d(TAG, "RTPService onStartCommand IPAddress= " + IPAddress);
         //Do what you need in onStartCommand when service has been started
         registerStartStopStreamListener();
@@ -159,16 +164,20 @@ public class RTPService extends Service {
             Log.d(TAG, "status stream= " + status);
             if (status == CarSettings.Global.CLUSTER_RTP_STREAM_STOP) {
                 Log.d(TAG, "stop stream");
-                stopSending();
+                // rollback sending logic start
+                stopCounter();
+//                stopSending();
+                // rollback sending logic end
             } else if (status == CarSettings.Global.CLUSTER_RTP_STREAM_START) {
-                Log.d(TAG, "start stream isFirstTimesStream= "+isFirstTimesStream);
-                if (isFirstTimesStream) {
-                    isFirstTimesStream = false;
-                    startCounter(IPAddress);
-                } else {
-                    startSending();
-                }
-
+                Log.d(TAG, "start stream isFirstTimesStream= " + isFirstTimesStream);
+                // rollback sending logic start
+//                if (isFirstTimesStream) {
+//                    isFirstTimesStream = false;
+                startCounter(IPAddress);
+//                } else {
+//                    startSending();
+//                }
+                // rollback sending logic end
             }
 
         }

@@ -59,7 +59,7 @@ public class RTPApplication extends Application {
 
         Log.d(TAG, "RTPApplication started");
         serviceIntent = new Intent(getApplicationContext(), RTPService.class);
-        IPAddress = "192.168.100.206";
+        IPAddress = "192.168.40.2";
         Log.d(TAG, "host = " + IPAddress);
         try {
             mDestination = InetAddress.getByName(IPAddress);
